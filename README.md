@@ -4,6 +4,8 @@
 [`/dev/uwurandom`](https://github.com/valadaptive/uwurandom) generates data through a tiny catgirl furiously typing away utter nonsense inside your computer.
 
 uwurandom-in-userspace does the same thing without the need to insert a kernel module.
+
+(uwurandom-in-userspace does not use a cryptographically secure random number generator.)
 ## Installation and usage
 
 ### Download uwurandom

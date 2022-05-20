@@ -1310,7 +1310,8 @@ uint64_t rol64(uint64_t x, int k) {
     return (x << k) | (x >> (64 - k));
 }
 
-uint64_t xoshiro256ss(uint64_t s[4]) {
+uint64_t xoshiro256ss(uwu_state *state) {
+    uint64_t *s = state->rand_state;
     uint64_t const result = rol64(s[1] * 5, 7) * 9;
     uint64_t const t = s[1] << 17;
 
@@ -1328,9 +1329,9 @@ uint64_t xoshiro256ss(uint64_t s[4]) {
 static void get_random_buffered(uwu_state *state, void *dst, size_t size) {
     // TODO: handle cases where size is more than 8 bytes
 
-    if (size > (RAND_SIZE - state->rng_idx)) {
-        uint64_t rand = xoshiro256ss(state->rand_state);
-        state->rng_buf = (char*)rand;
+    if (size < (sizeof(uint64_t) - state->rng_idx)) {
+        uint64_t rand = xoshiro256ss(state);
+        *(state->rng_buf) = rand;
         state->rng_idx = 0;
     }
     memcpy(dst, state->rng_buf + state->rng_idx, size);
