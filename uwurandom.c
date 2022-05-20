@@ -7,6 +7,7 @@
 #include <string.h>
 #include <sys/random.h>
 #include <sys/stat.h>
+#include <sys/mman.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -76,6 +77,7 @@ typedef struct {
     size_t current_op;
     int prev_op;
     bool print_space;
+    uint64_t rand_state[4];
     char *rng_buf;
     size_t rng_idx;
 } uwu_state;
@@ -1302,15 +1304,33 @@ static string_with_len actions[] = {
         STRING_WITH_LEN("*lies down on a random surface*")
 };
 
-const size_t RAND_SIZE = 128;
+const size_t RAND_SIZE = 1048576; // 1MiB
+
+uint64_t rol64(uint64_t x, int k) {
+    return (x << k) | (x >> (64 - k));
+}
+
+uint64_t xoshiro256ss(uint64_t s[4]) {
+    uint64_t const result = rol64(s[1] * 5, 7) * 9;
+    uint64_t const t = s[1] << 17;
+
+    s[2] ^= s[0];
+    s[3] ^= s[1];
+    s[1] ^= s[2];
+    s[0] ^= s[3];
+
+    s[2] ^= t;
+    s[3] = rol64(s[3], 45);
+
+    return result;
+}
 
 static void get_random_buffered(uwu_state *state, void *dst, size_t size) {
+    // TODO: handle cases where size is more than 8 bytes
+
     if (size > (RAND_SIZE - state->rng_idx)) {
-        if (size > RAND_SIZE) {
-            getrandom(dst, size, 0);
-            return;
-        }
-        getrandom(state->rng_buf, RAND_SIZE, 0);
+        uint64_t rand = xoshiro256ss(state->rand_state);
+        state->rng_buf = (char*)rand;
         state->rng_idx = 0;
     }
     memcpy(dst, state->rng_buf + state->rng_idx, size);
@@ -1569,6 +1589,8 @@ int main() {
 
     uwu_state *data = malloc(len);
 
+    getrandom(data->rand_state, sizeof(((uwu_state*)0)->rand_state), 0);
+
     if (data == NULL) {
         fprintf(stderr, "error: out of memory");
         return ENOMEM;
@@ -1605,6 +1627,7 @@ int main() {
 
     size_t uwu_buf_len = (size_t) pipe_max_size;
     char *uwu_buf = malloc(uwu_buf_len);
+    // mmap(NULL, uwu_buf_len, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
     if (uwu_buf == NULL) {
         fprintf(stderr, "error: out of memory\n");
@@ -1651,4 +1674,6 @@ int main() {
             write(1, uwu_buf, uwu_buf_len);
         }
     }
+
+    return 0;
 }
