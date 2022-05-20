@@ -24,7 +24,7 @@ make static
 
 ### Use uwurandom
 
-Usage is also easy! >w<
+Usage is easy! >w<
 
 Just execute the file you downloaded from a terminal, i.e:
 ```bash
