@@ -32,3 +32,9 @@ Just execute the file you downloaded from a terminal, i.e:
 ```
 
 and witness its sheer glory with your own eyes.
+
+#### My shell says "permission denied"
+You must make the file executable before you run it.
+```bash
+chmod +x ./uwurandom-x86_64-static-linux
+```
