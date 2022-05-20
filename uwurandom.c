@@ -1574,14 +1574,16 @@ int main() {
     uwu_state *data = malloc(len);
 
     if (data == NULL) {
-        return -ENOMEM;
+        fprintf(stderr, "error: out of memory");
+        return ENOMEM;
     }
 
     char *rng_buf = malloc(RAND_SIZE);
 
     if (rng_buf == NULL) {
+        fprintf(stderr, "error: out of memory");
         free(data);
-        return -ENOMEM;
+        return ENOMEM;
     }
 
     data->prev_op = -1;
@@ -1593,20 +1595,39 @@ int main() {
 
     FILE *fd = fopen("/proc/sys/fs/pipe-max-size", "r");
 
-    if (fd == NULL) {
-        return errno;
-    }
-
     int pipe_max_size;
 
-    fscanf(fd, "%d", &pipe_max_size);
+    if (fd == NULL) {
+        // in case /proc/sys/fs/pipe-max-size is not readable (like in Android)
+        fprintf(stderr, "warning: cannot read /proc/sys/fs/pipe-max-size, setting pipe size to 8192");
+        pipe_max_size = 8192;
+    } else {
+        fscanf(fd, "%d", &pipe_max_size);
+    }
 
     fcntl(1, F_SETPIPE_SZ, pipe_max_size);
+
     size_t uwu_buf_len = (size_t) pipe_max_size;
     char *uwu_buf = malloc(uwu_buf_len);
 
+    if (uwu_buf == NULL) {
+        fprintf(stderr, "error: out of memory");
+        free(data);
+        free(rng_buf);
+        return ENOMEM;
+    }
+
     struct iovec *vec;
     vec = malloc(sizeof(struct iovec));
+
+    if (vec == NULL) {
+        fprintf(stderr, "error: out of memory");
+        free(uwu_buf);
+        free(data);
+        free(rng_buf);
+        return ENOMEM;
+    }
+
     vec->iov_base = uwu_buf;
     vec->iov_len = uwu_buf_len;
 
