@@ -3,7 +3,7 @@
 
 [`/dev/uwurandom`](https://github.com/valadaptive/uwurandom) generates data through a tiny catgirl furiously typing away utter nonsense inside your computer.
 
-uwurandom-in-userspace also does that, except in userspace. You can now use that catgirl's nonsense in situations where you can't install kernel modules, like in a container!
+uwurandom-in-userspace does the same thing without the need to insert a kernel module.
 ## Installation and usage
 
 ### Download uwurandom
@@ -31,7 +31,12 @@ Just execute the file you downloaded from a terminal, i.e:
 ./uwurandom-x86_64-static-linux
 ```
 
-and witness its sheer glory with your own eyes.
+and witness its sheer glory with your own eyes:
+
+```
+owo hgfhahglkajkfgfghngjkfdbhkahfgjra nyaaaaaa :3 nyaa aw! the and cute!! scrungle whe too uwu mrowmrowrmraowmrowmewpurrrppurrowmraowmrowmrowmeowmewnyaaamrrrppurrppurrrrmrowmrowmeowmraowpurrrowrnyaamraowmraowmnya *stares at u* >////< nya >//////< *lies down on a random surface* nya hnhuraurafgjkjg;ajfguegadkhdfghkahdjgjkgjdflajl;kskfkdfl;kahdhfgkjfgkjgfkfkjhflfgjegjkjafgjkalghglkg uwu *nuzzles* awwww tie! cute,,awwwwww spronkly d mrowmrowrmrrppurrppurrmrrmrowmeowmrowrnyaameowmewmraowmrowmrrmrowmewmrrmrwmeowwwwwwwwwwwmeowmraowmraowrmewmrownyaaaaamewmeowrnyamraowrmrowmraowrnya uwu g;ajlajhjdfdfklskflalkjhhgahajeghjhalkglahjra *points towards case of monster zero ultra* uwu :3 >////< *nuzzles* nya aww whenpsy!! scrunge!!!! tappy,,,h lkfghfg;al;ajfgfgahjhdhjeghajegafgjksdfjogurgfhdhglarhjkjadhdhjrgfjhgskdbhgagjdgjdskhhfgahghrg;ahg *tilts head* AAAAAAAAAAA kafglfhhkgajlskghrgjlauralkjoguegfgadfjdbkdfkldfjdhjksdfgajdhfdhiuegahgjdhgdfka;aglkajdsdhdfjogajfglgbajhiurg uwu AAAAAAAAA :3 owo :3 mraowmraowmraowpurrrppurrr
+```
+
 
 #### My shell says "permission denied"
 You must make the file executable before you run it.
