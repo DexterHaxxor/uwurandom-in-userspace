@@ -33,8 +33,7 @@ jobs:
 
     strategy:
       matrix:
-        include:
-          arch: ['aarch64', 'armv7']
+        arch: ['aarch64', 'armv7']
 
     steps:
       - uses: actions/checkout@v2
