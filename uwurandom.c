@@ -11,12 +11,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#define COPY_STR(dst, src, len) memcpy((dst), (src), (len))
-
-static int major;
-static struct class *dev_class;
-static dev_t dev_num;
-
 typedef struct uwu_markov_choice uwu_markov_choice;
 struct uwu_markov_choice {
     size_t next_ngram;
