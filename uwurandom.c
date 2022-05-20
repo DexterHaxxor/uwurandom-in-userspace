@@ -6,8 +6,10 @@
 #include <stdbool.h>
 #include <string.h>
 #include <sys/random.h>
+#include <sys/stat.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 #define COPY_STR(dst, src, len) memcpy((dst), (src), (len))
 
@@ -1599,7 +1601,7 @@ int main() {
 
     if (fd == NULL) {
         // in case /proc/sys/fs/pipe-max-size is not readable (like in Android)
-        fprintf(stderr, "warning: cannot read /proc/sys/fs/pipe-max-size, setting pipe size to 8192");
+        fprintf(stderr, "warning: cannot read /proc/sys/fs/pipe-max-size, setting pipe size to 8192\n");
         pipe_max_size = 8192;
     } else {
         fscanf(fd, "%d", &pipe_max_size);
@@ -1611,30 +1613,48 @@ int main() {
     char *uwu_buf = malloc(uwu_buf_len);
 
     if (uwu_buf == NULL) {
-        fprintf(stderr, "error: out of memory");
+        fprintf(stderr, "error: out of memory\n");
         free(data);
         free(rng_buf);
         return ENOMEM;
     }
 
+    struct stat stat_buf;
+    int status = fstat(1, &stat_buf);
+
+    if (status == -1) {
+        fprintf(stderr, "error: %s", strerror(errno));
+        return errno;
+    }
+
+    bool is_pipe = stat_buf.st_mode == S_IFIFO;
     struct iovec *vec;
-    vec = malloc(sizeof(struct iovec));
 
-    if (vec == NULL) {
-        fprintf(stderr, "error: out of memory");
-        free(uwu_buf);
-        free(data);
-        free(rng_buf);
-        return ENOMEM;
+    if (is_pipe) {
+        vec = malloc(sizeof(struct iovec));
+
+        if (vec == NULL) {
+            fprintf(stderr, "error: out of memory\n");
+            free(uwu_buf);
+            free(data);
+            free(rng_buf);
+            return ENOMEM;
+        }
+
+        vec->iov_base = uwu_buf;
+        vec->iov_len = uwu_buf_len;
     }
-
-    vec->iov_base = uwu_buf;
-    vec->iov_len = uwu_buf_len;
 
     while (1) {
         int result = write_chars(data, uwu_buf, uwu_buf_len);
         if (result < 0) return result;
 
-        vmsplice(1, vec, 1, SPLICE_F_GIFT);
+        if (is_pipe) {
+            // It doesn't actually matter if we write to the buffer in the middle of a read,
+            // it's all nonsense anyway
+            vmsplice(1, vec, 1, SPLICE_F_GIFT);
+        } else {
+            write(1, uwu_buf, uwu_buf_len);
+        }
     }
 }
