@@ -1,0 +1,70 @@
+name: build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build on Ubuntu 20.04
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install build prerequisites
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y clang make libc6-dev
+      - name: Build executable
+        run: |
+          cd ${GITHUB_WORKSPACE}
+          make static
+          mv uwurandom-static uwurandom-x86_64-static-linux
+      - name: Publish
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${GITHUB_WORKSPACE}/uwurandom-x86_64-static-linux
+          tag: ${{ github.ref }}
+  build_other_architectures:
+    name: Build on Ubuntu 20.04 for ${{ matrix.arch }}
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        include:
+          arch: ['aarch64', 'armv7']
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: uraimo/run-on-arch-action@v2
+        name: Build executable
+        id: build
+        with:
+          arch: ${{ matrix.arch }}
+          distro: ubuntu-20.04
+
+          githubToken: ${{ github.token }}
+
+          dockerRunArgs: --volume "${GITHUB_WORKSPACE}:/build"
+
+          env: |
+            artifact_name: uwurandom-${{ matrix.arch }}-static-linux
+
+          shell: /bin/sh
+
+          install: |
+            apt-get update -y
+            apt-get install -y clang make libc6-dev
+
+          run: |
+            cd /build
+            make static
+            mv uwurandom-static $artifact_name
+      - name: Publish
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${GITHUB_WORKSPACE}/uwurandom-${{ matrix.arch }}-static-linux
+          tag: ${{ github.ref }}

@@ -1,33 +1,34 @@
-# /dev/uwurandom
+# uwurandom-in-userspace
+`/dev/urandom` is made out of cold hard math.
 
-`/dev/urandom` is made out of cold hard math. Instead, consider using `/dev/uwurandom`, which generates data through a tiny catgirl furiously typing away utter nonsense inside your computer.
+[`/dev/uwurandom`](https://github.com/valadaptive/uwurandom) generates data through a tiny catgirl furiously typing away utter nonsense inside your computer.
 
-**Disclaimer: I am very bad at C. While I've tested this myself and haven't managed to cause a kernel panic, this is not production-quality code. Use at your own risk.**
-
+uwurandom-in-userspace also does that, except in userspace. You can now use that catgirl's nonsense in situations where you can't install kernel modules, like in a container!
 ## Installation and usage
 
-### Installation
-Compilation is easy :3
+### Download uwurandom
+Get the executable for your architecture from [here](https://github.com/gltile-two-electric-boogaloo/uwurandom-in-userspace/releases). Executables are statically compiled.
 
-On Fedora, you can just do:
+Windows and macOS are not supported.
+
+### Compile uwurandom
+On Linux, simply run:
 ```bash
 make
 ```
 
-On Arch, just install [uwurandom-git-dkms](https://aur.archlinux.org/packages/uwurandom-git-dkms) from the AUR! >/////<
+To create a static executable, run:
+```bash
+make static
+```
 
-On other distros, you may need to adjust the include paths in [the Makefile](./Makefile) depending on where your kernel headers are located (I think it's ``/usr/src/linux-headers-\`uname -r` `` on Ubuntu and ``/usr/lib/modules/`uname -r`/build`` on Arch but don't quote me on that). After that you *should* be able to `make` as usual.
-
-### Usage
+### Use uwurandom
 
 Usage is also easy! >w<
 
+Just execute the file you downloaded from a terminal, i.e:
 ```bash
-sudo insmod uwurandom.ko
+./uwurandom-x86_64-static-linux
 ```
 
-Afterwards, you can just:
-```bash
-cat /dev/uwurandom
-```
 and witness its sheer glory with your own eyes.
