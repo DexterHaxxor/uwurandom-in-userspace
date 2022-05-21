@@ -1304,46 +1304,50 @@ static string_with_len actions[] = {
         STRING_WITH_LEN("*lies down on a random surface*")
 };
 
-const size_t RAND_SIZE = 1048576; // 1MiB
-
 uint64_t rol64(uint64_t x, int k) {
     return (x << k) | (x >> (64 - k));
 }
 
-uint64_t xoshiro256ss(uwu_state *state) {
-    uint64_t *s = state->rand_state;
-    uint64_t const result = rol64(s[1] * 5, 7) * 9;
-    uint64_t const t = s[1] << 17;
-
-    s[2] ^= s[0];
-    s[3] ^= s[1];
-    s[1] ^= s[2];
-    s[0] ^= s[3];
-
-    s[2] ^= t;
-    s[3] = rol64(s[3], 45);
-
-    return result;
-}
-
-static void get_random_buffered(uwu_state *state, void *dst, size_t size) {
-    // TODO: handle cases where size is more than 8 bytes
-
+static void ensure_randbuf(uwu_state *state, size_t size) {
     if (size < (sizeof(uint64_t) - state->rng_idx)) {
-        uint64_t rand = xoshiro256ss(state);
-        *(state->rng_buf) = rand;
+        uint64_t *s = state->rand_state;
+        uint64_t const result = rol64(s[1] * 5, 7) * 9;
+        uint64_t const t = s[1] << 17;
+
+        s[2] ^= s[0];
+        s[3] ^= s[1];
+        s[1] ^= s[2];
+        s[0] ^= s[3];
+
+        s[2] ^= t;
+        s[3] = rol64(s[3], 45);
+
+        memcpy(state->rng_buf, &result, sizeof(uint64_t));
         state->rng_idx = 0;
     }
-    memcpy(dst, state->rng_buf + state->rng_idx, size);
-    state->rng_idx += size;
+}
+
+static uint8_t get_random_int(uwu_state *state) {
+    ensure_randbuf(state, sizeof(uint8_t));
+
+    uint8_t ret = state->rng_buf[state->rng_idx];
+    state->rng_idx += sizeof(uint8_t);
+
+    return ret;
+}
+
+static uint16_t get_random_int16(uwu_state *state) {
+    ensure_randbuf(state, sizeof(uint16_t));
+
+    uint16_t ret = state->rng_buf[state->rng_idx];
+    state->rng_idx += sizeof(uint16_t);
+
+    return ret;
 }
 
 // Pick a random program from the list of programs and write it to the ops list
-static void
-generate_new_ops(uwu_state *state) {
-    // init to 0 in case get_random_bytes fails
-    unsigned int random = 0;
-    get_random_buffered(state, &random, sizeof(random));
+static void generate_new_ops(uwu_state *state) {
+    uint8_t random = get_random_int(state);
 
     static uwu_op null_op = {
             .opcode = UWU_NULL
@@ -1372,7 +1376,7 @@ generate_new_ops(uwu_state *state) {
             break;
         }
         case 1: { // catgirl nonsense
-            get_random_buffered(state, &random, sizeof(random));
+            random = get_random_int(state);
             uwu_op op1 = CREATE_PRINT_STRING("mr");
             uwu_op op2 = {
                     .opcode = UWU_MARKOV,
@@ -1392,7 +1396,7 @@ generate_new_ops(uwu_state *state) {
             break;
         }
         case 2: { // nyaaaaaaa
-            get_random_buffered(state, &random, sizeof(random));
+            random = get_random_int(state);
             uwu_op op1 = CREATE_PRINT_STRING("ny");
             uwu_op op2 = CREATE_REPEAT_CHARACTER('a', (random % 7) + 1);
             ops[0] = op1;
@@ -1401,7 +1405,7 @@ generate_new_ops(uwu_state *state) {
             break;
         }
         case 3: { // >/////<
-            get_random_buffered(state, &random, sizeof(random));
+            random = get_random_int(state);
             uwu_op op1 = CREATE_PRINT_STRING(">");
             uwu_op op2 = CREATE_REPEAT_CHARACTER('/', (random % 4) + 3);
             uwu_op op3 = CREATE_PRINT_STRING("<");
@@ -1418,7 +1422,7 @@ generate_new_ops(uwu_state *state) {
             break;
         }
         case 5: { // actions
-            get_random_buffered(state, &random, sizeof(random));
+            random = get_random_int(state);
             string_with_len action = actions[random % (sizeof(actions) / sizeof(string_with_len))];
             uwu_op op = {
                     .opcode = UWU_PRINT_STRING,
@@ -1434,7 +1438,7 @@ generate_new_ops(uwu_state *state) {
             break;
         }
         case 6: { // keyboard mash
-            get_random_buffered(state, &random, sizeof(random));
+            random = get_random_int(state);
             uwu_op op = {
                     .opcode = UWU_MARKOV,
                     .state = {
@@ -1450,7 +1454,7 @@ generate_new_ops(uwu_state *state) {
             break;
         }
         case 7: { // screaming
-            get_random_buffered(state, &random, sizeof(random));
+            random = get_random_int(state);
             uwu_op op = CREATE_REPEAT_CHARACTER('A', (random % 12) + 5);
             ops[0] = op;
             ops[1] = null_op;
@@ -1513,9 +1517,9 @@ static int exec_op(uwu_state *state, char *buf, size_t len) {
             int i;
             for (i = 0; i < num_chars_to_copy; i++) {
                 uwu_markov_ngram ngram = ngrams[ngram_index];
-                unsigned int random = 0;
-                get_random_buffered(state, &random, sizeof(random));
+                uint16_t random = get_random_int16(state);
                 random %= ngram.total_probability;
+
                 int j = 0;
                 while (true) {
                     uwu_markov_choice choice = ngram.choices[j];
@@ -1597,7 +1601,7 @@ int main() {
         return ENOMEM;
     }
 
-    char *rng_buf = malloc(RAND_SIZE);
+    char *rng_buf = malloc(sizeof(uint64_t));
 
     if (rng_buf == NULL) {
         fprintf(stderr, "error: out of memory");
@@ -1608,7 +1612,7 @@ int main() {
     data->prev_op = -1;
     data->current_op = 0;
     data->rng_buf = rng_buf;
-    data->rng_idx = RAND_SIZE;
+    data->rng_idx = sizeof(uint64_t);
 
     generate_new_ops(data);
 
