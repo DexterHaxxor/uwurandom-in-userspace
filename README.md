@@ -26,7 +26,7 @@ make static
 
 On Windows, it's slightly more convoluted:
 ```bash
-clang -O3 uwurandom.c -o uwurandom-exe
+clang -O3 uwurandom.c -o uwurandom.exe
 ```
 
 Note that on Windows you need the [Cryptographic Provider Development Kit](https://www.microsoft.com/en-us/download/details.aspx?id=30688).
