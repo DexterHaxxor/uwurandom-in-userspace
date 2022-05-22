@@ -7,5 +7,8 @@ all:
 static:
 	${CC} $(CFLAGS) -static uwurandom.c -o uwurandom-static
 
+static32:
+	${CC} $(CFLAGS) -static -m32 uwurandom.c -o uwurandom-static-32
+
 clean:
 	rm uwurandom
