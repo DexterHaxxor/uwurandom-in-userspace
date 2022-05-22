@@ -9,6 +9,7 @@
 
 #ifdef _WIN32
 
+#pragma comment(lib, "bcrypt.lib")
 #include <Windows.h>
 #include <io.h>
 #include <bcrypt.h>
