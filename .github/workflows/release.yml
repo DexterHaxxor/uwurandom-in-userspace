@@ -88,8 +88,8 @@ jobs:
         shell: powershell
         run: |
           Set-Location -Path "${GITHUB_WORKSPACE}"
-          clang -static uwurandom.c -o uwurandom-x86_64-static-windows.exe
-          clang -static -m32 uwurandom.c -o uwurandom-x86-static-windows.exe
+          clang -O3 -static uwurandom.c -o uwurandom-x86_64-static-windows.exe
+          clang -O3 -static -m32 uwurandom.c -o uwurandom-x86-static-windows.exe
       - name: Publish
         if: startsWith(github.ref, 'refs/tags')
         uses: svenstaro/upload-release-action@v2

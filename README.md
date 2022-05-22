@@ -11,7 +11,7 @@ uwurandom-in-userspace does the same thing without the need to insert a kernel m
 ### Download uwurandom
 Get the executable for your architecture from [here](https://github.com/gltile-two-electric-boogaloo/uwurandom-in-userspace/releases). Executables are statically compiled.
 
-Windows and macOS are not supported.
+macOS is not supported.
 
 ### Compile uwurandom
 On Linux, simply run:
@@ -23,6 +23,13 @@ To create a static executable, run:
 ```bash
 make static
 ```
+
+On Windows, it's slightly more convoluted:
+```bash
+clang -O3 uwurandom.c -o uwurandom-exe
+```
+
+Note that on Windows you need the [Cryptographic Provider Development Kit](https://www.microsoft.com/en-us/download/details.aspx?id=30688).
 
 ### Use uwurandom
 
