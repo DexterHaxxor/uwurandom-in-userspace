@@ -96,6 +96,6 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/uwurandom-*-static-linux
+          file: ${{ github.workspace }}/uwurandom-*-static-windows.exe
           tag: ${{ github.ref }}
           file_glob: true
