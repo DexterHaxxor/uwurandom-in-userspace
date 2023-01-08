@@ -11,7 +11,7 @@ uwurandom-in-userspace does the same thing without the need to insert a kernel m
 ### Download uwurandom
 Get the executable for your architecture from [here](https://github.com/gltile-two-electric-boogaloo/uwurandom-in-userspace/releases). Executables are statically compiled.
 
-macOS is not supported.
+macOS is *now* supported.
 
 ### Compile uwurandom
 On Linux, simply run:
