@@ -1,3 +1,5 @@
+#include <stddef.h>
+#include <sys/fcntl.h>
 #define _GNU_SOURCE
 
 #include <stdlib.h>
@@ -17,6 +19,9 @@
 #define write _write
 
 #else
+/* These headers are required for iovec as per POSIX */
+#include <sys/types.h>
+#include <sys/uio.h>
 
 #include <sys/random.h>
 #include <sys/stat.h>
@@ -1358,7 +1363,7 @@ static uint16_t get_random_int16(uwu_state *state) {
     return ret;
 }
 
-#ifdef _WIN32
+#if defined(_WIN32)
 static void getrandom(void *buf, size_t buflen, unsigned int flags) {
     // Windows absolutely sucks
 
@@ -1378,6 +1383,17 @@ static void getrandom(void *buf, size_t buflen, unsigned int flags) {
     }
 
     BCryptCloseAlgorithmProvider(provider, 0);
+}
+#elif !defined(__linux__)
+static void getrandom(void *buf, size_t buflen, unsigned int flags) {
+    // This is a general POSIX implementation based on /def/urandom
+    int fd = open("/dev/urandom", O_RDWR);
+    while (buflen) {
+        size_t n = read(fd, buf, buflen);
+        buflen -= n;
+        buf += n;
+    }
+    close(fd);
 }
 #endif
 
@@ -1652,7 +1668,7 @@ int main() {
 
     generate_new_ops(data);
 
-#ifndef _WIN32
+#ifdef __linux__
     FILE *fd = fopen("/proc/sys/fs/pipe-max-size", "r");
 
     int pipe_max_size;
@@ -1718,7 +1734,7 @@ int main() {
         if (is_pipe) {
             // It doesn't actually matter if we write to the buffer in the middle of a read,
             // it's all nonsense anyway
-            vmsplice(1, vec, 1, SPLICE_F_GIFT);
+            writev(1, vec, 1);
         } else {
             write(1, uwu_buf, uwu_buf_len);
         }
