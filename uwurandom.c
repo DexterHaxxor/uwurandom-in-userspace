@@ -1386,7 +1386,7 @@ static void getrandom(void *buf, size_t buflen, unsigned int flags) {
 }
 #elif !defined(__linux__)
 static void getrandom(void *buf, size_t buflen, unsigned int flags) {
-    // This is a general POSIX implementation based on /def/urandom
+    // This is a general POSIX implementation based on /dev/urandom
     int fd = open("/dev/urandom", O_RDWR);
     while (buflen) {
         size_t n = read(fd, buf, buflen);
